@@ -1,34 +1,29 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using Flint.Converters;
 
 namespace Flint.Core
 {
-    public static class ConverterManager
+    public static class ConversionRegistry
     {
-        private static readonly Dictionary<(string, string), IFileConverter> converters = ConversionRegistry.Register();
-
-        public static void Convert(string sourcePath, string targetPath)
+        public static Dictionary<(string, string), IFileConverter> Register()
         {
-            string sourceExt = Path.GetExtension(sourcePath).ToLower();
-            string targetExt = Path.GetExtension(targetPath).ToLower();
+            return new Dictionary<(string, string), IFileConverter>
+            {
+                { (".png", ".pdf"), new PngToPdfConverter() },
+                { (".jpg", ".pdf"), new JpgToPdfConverter() },
+                { (".png", ".jpg"), new PngToJpgConverter() },
+                { (".jpg", ".png"), new JpgToPngConverter() },
 
-            if (converters.TryGetValue((sourceExt, targetExt), out var converter))
-            {
-                try
-                {
-                    converter.Convert(sourcePath, targetPath);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Conversion failed: {ex.Message}");
-                }
-            }
-            else
-            {
-                Console.WriteLine($"No converter registered for: {sourceExt} -> {targetExt}");
-            }
+                { (".docx", ".pdf"), new DocxToPdfConverter() },
+                { (".docx", ".txt"), new DocxToTxtConverter() },
+                { (".txt", ".pdf"), new TxtToPdfConverter() },
+
+                { (".csv", ".xlsx"), new CsvToXlsxConverter() },
+                { (".xlsx", ".csv"), new XlsxToCsvConverter() },
+
+                { (".csv", ".json"), new CsvToJsonConverter() },
+                { (".json", ".csv"), new JsonToCsvConverter() },
+            };
         }
     }
 }
